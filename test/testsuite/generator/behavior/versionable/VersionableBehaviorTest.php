@@ -48,7 +48,7 @@ EOF;
 -- versionable_behavior_test_0
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0;
+DROP TABLE IF EXISTS versionable_behavior_test_0;
 
 CREATE TABLE versionable_behavior_test_0
 (
@@ -80,7 +80,7 @@ EOF;
 -- versionable_behavior_test_0
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0;
+DROP TABLE IF EXISTS versionable_behavior_test_0;
 
 CREATE TABLE versionable_behavior_test_0
 (
@@ -100,6 +100,7 @@ EOF;
 		<column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" />
 		<column name="bar" type="INTEGER" />
 		<column name="version" type="BIGINT" />
+    <behavior name="versionable" />
 	</table>
 </database>
 EOF;
@@ -110,7 +111,7 @@ EOF;
 -- versionable_behavior_test_0
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0;
+DROP TABLE IF EXISTS versionable_behavior_test_0;
 
 CREATE TABLE versionable_behavior_test_0
 (
@@ -157,7 +158,7 @@ EOF;
 -- versionable_behavior_test_0
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0;
+DROP TABLE IF EXISTS versionable_behavior_test_0;
 
 CREATE TABLE versionable_behavior_test_0
 (
@@ -174,7 +175,7 @@ EOF;
 -- versionable_behavior_test_0_version
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0_version;
+DROP TABLE IF EXISTS versionable_behavior_test_0_version;
 
 CREATE TABLE versionable_behavior_test_0_version
 (
@@ -204,7 +205,7 @@ EOF;
 -- versionable_behavior_test_1
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_1;
+DROP TABLE IF EXISTS versionable_behavior_test_1;
 
 CREATE TABLE versionable_behavior_test_1
 (
@@ -220,7 +221,7 @@ EOF;
 -- versionable_behavior_test_1_version
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_1_version;
+DROP TABLE IF EXISTS versionable_behavior_test_1_version;
 
 CREATE TABLE versionable_behavior_test_1_version
 (
@@ -250,7 +251,7 @@ EOF;
 -- versionable_behavior_test_0_version
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0_version;
+DROP TABLE IF EXISTS versionable_behavior_test_0_version;
 
 CREATE TABLE versionable_behavior_test_0_version
 (
@@ -286,7 +287,7 @@ EOF;
 -- foo_ver
 -----------------------------------------------------------------------
 
-DROP TABLE foo_ver;
+DROP TABLE IF EXISTS foo_ver;
 
 CREATE TABLE foo_ver
 (
@@ -325,7 +326,7 @@ EOF;
 -- versionable_behavior_test_0
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0;
+DROP TABLE IF EXISTS versionable_behavior_test_0;
 
 CREATE TABLE versionable_behavior_test_0
 (
@@ -338,7 +339,7 @@ CREATE TABLE versionable_behavior_test_0
 -- versionable_behavior_test_0_version
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0_version;
+DROP TABLE IF EXISTS versionable_behavior_test_0_version;
 
 CREATE TABLE versionable_behavior_test_0_version
 (
@@ -380,7 +381,7 @@ EOF;
 -- versionable_behavior_test_0
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0;
+DROP TABLE IF EXISTS versionable_behavior_test_0;
 
 CREATE TABLE versionable_behavior_test_0
 (
@@ -407,7 +408,7 @@ EOF;
 -- versionable_behavior_test_0_version
 -----------------------------------------------------------------------
 
-DROP TABLE versionable_behavior_test_0_version;
+DROP TABLE IF EXISTS versionable_behavior_test_0_version;
 
 CREATE TABLE versionable_behavior_test_0_version
 (
@@ -439,7 +440,25 @@ EOF;
 EOF;
 			$builder = new PropelQuickBuilder();
 			$builder->setSchema($schema);
-			$builder->getSQL();
+      $expected = <<<EOF
+-----------------------------------------------------------------------
+-- versionable_behavior_test_0_version
+-----------------------------------------------------------------------
+
+DROP TABLE IF EXISTS versionable_behavior_test_0_version;
+
+CREATE TABLE versionable_behavior_test_0_version
+(
+	id INTEGER NOT NULL,
+	bar INTEGER,
+	version INTEGER DEFAULT 0 NOT NULL,
+	PRIMARY KEY (id,version)
+);
+
+-- SQLite does not support foreign keys; this is just for reference
+-- FOREIGN KEY (id) REFERENCES versionable_behavior_test_0 (id)
+EOF;
+      $this->assertContains($expected, $builder->getSQL());
 	}
 
 }
