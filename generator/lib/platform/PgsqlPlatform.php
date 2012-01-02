@@ -22,6 +22,8 @@ require_once dirname(__FILE__) . '/DefaultPlatform.php';
 class PgsqlPlatform extends DefaultPlatform
 {
 
+	protected $isIdentifierQuotingEnabled = true;
+
 	/**
 	 * Initializes db specific domain mapping.
 	 */
@@ -232,7 +234,7 @@ SET search_path TO public;
 		$sep = ",
 	";
 		$pattern = "
-CREATE TABLE \"%s\"
+CREATE TABLE %s
 (
 	%s
 );
@@ -286,7 +288,7 @@ COMMENT ON COLUMN %s.%s IS %s;
 		$ret = '';
 		$ret .= $this->getUseSchemaDDL($table);
 		$pattern = "
-DROP TABLE IF EXISTS \"%s\" CASCADE;
+DROP TABLE IF EXISTS %s CASCADE;
 ";
 		$ret .= sprintf($pattern, $this->quoteIdentifier($table->getName()));
 		$ret .= $this->getDropSequenceDDL($table);
@@ -378,7 +380,7 @@ DROP TABLE IF EXISTS \"%s\" CASCADE;
 		$colName = $this->quoteIdentifier($toColumn->getName());
 
 		$pattern = "
-ALTER TABLE \"%s\" ALTER COLUMN %s;
+ALTER TABLE %s ALTER COLUMN %s;
 ";
 		foreach ($changedProperties as $key => $property) {
 			switch ($key) {
