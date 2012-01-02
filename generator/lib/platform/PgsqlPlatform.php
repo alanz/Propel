@@ -232,7 +232,7 @@ SET search_path TO public;
 		$sep = ",
 	";
 		$pattern = "
-CREATE TABLE %s
+CREATE TABLE \"%s\"
 (
 	%s
 );
@@ -286,7 +286,7 @@ COMMENT ON COLUMN %s.%s IS %s;
 		$ret = '';
 		$ret .= $this->getUseSchemaDDL($table);
 		$pattern = "
-DROP TABLE IF EXISTS %s CASCADE;
+DROP TABLE IF EXISTS \"%s\" CASCADE;
 ";
 		$ret .= sprintf($pattern, $this->quoteIdentifier($table->getName()));
 		$ret .= $this->getDropSequenceDDL($table);
@@ -378,7 +378,7 @@ DROP TABLE IF EXISTS %s CASCADE;
 		$colName = $this->quoteIdentifier($toColumn->getName());
 
 		$pattern = "
-ALTER TABLE %s ALTER COLUMN %s;
+ALTER TABLE \"%s\" ALTER COLUMN %s;
 ";
 		foreach ($changedProperties as $key => $property) {
 			switch ($key) {
