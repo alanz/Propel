@@ -22,7 +22,6 @@ require_once dirname(__FILE__) . '/DefaultPlatform.php';
 class PgsqlPlatform extends DefaultPlatform
 {
 
-	protected $isIdentifierQuotingEnabled = true;
 
 	/**
 	 * Initializes db specific domain mapping.
