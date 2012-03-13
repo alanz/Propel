@@ -1505,6 +1505,19 @@ class ModelCriteriaTest extends BookstoreTestBase
 		$this->assertEquals(125, $book->getPrice(), 'findOneOrCreate() returns a populated objects based on the conditions');
 	}
 
+	/**
+	 * @expectedException PropelException
+	 */
+	public function testFindOneOrCreateThrowsExceptionWhenQueryContainsJoin()
+	{
+		$book = BookQuery::create('b')
+			->filterByPrice(125)
+			->useAuthorQuery()
+				->filterByFirstName('Leo')
+			->endUse()
+			->findOneOrCreate();
+	}
+
 	public function testFindOneOrCreateMakesOneQueryWhenRecordNotExists()
 	{
 		$con = Propel::getConnection(BookPeer::DATABASE_NAME);
@@ -2387,7 +2400,7 @@ class ModelCriteriaTest extends BookstoreTestBase
 		$this->assertEquals($c2, $c1, 'addUsingalias() translates to addAnd() when the table already has a condition on the column');
 	}
 
-	public function testClone()
+	public function testCloneCopiesConditions()
 	{
 		$bookQuery1 = BookQuery::create()
 			->filterByPrice(1);
@@ -2397,6 +2410,28 @@ class ModelCriteriaTest extends BookstoreTestBase
 		$params = array();
 		$sql = BasePeer::createSelectSql($bookQuery1, $params);
 		$this->assertEquals('SELECT  FROM `book` WHERE book.PRICE=:p1', $sql, 'conditions applied on a cloned query don\'t get applied on the original query');
+	}
+
+	public function testCloneCopiesFormatter()
+	{
+		$formatter1 = new PropelArrayFormatter();
+		$formatter1->test = false;
+		$bookQuery1 = BookQuery::create();
+		$bookQuery1->setFormatter($formatter1);
+		$bookQuery2 = clone $bookQuery1;
+		$formatter2 = $bookQuery2->getFormatter();
+		$this->assertFalse($formatter2->test);
+		$formatter2->test = true;
+		$this->assertFalse($formatter1->test);
+	}
+
+	public function testCloneCopiesSelect()
+	{
+		$bookQuery1 = BookQuery::create();
+		$bookQuery1->select(array('Id', 'Title'));
+		$bookQuery2 = clone $bookQuery1;
+		$bookQuery2->select(array('ISBN', 'Price'));
+		$this->assertEquals(array('Id', 'Title'), $bookQuery1->getSelect());
 	}
 }
 

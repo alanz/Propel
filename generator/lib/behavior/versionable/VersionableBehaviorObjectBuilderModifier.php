@@ -244,7 +244,7 @@ public function addVersion(\$con = null)
 			$idsColumn = $this->behavior->getReferrerIdsColumn($fk);
 			$versionsColumn = $this->behavior->getReferrerVersionsColumn($fk);
 			$script .= "
-	if (\$relateds = \$this->get{$fkGetter}(\$con)->toKeyValue('{$fk->getForeignColumn()->getPhpName()}', 'Version')) {
+	if (\$relateds = \$this->get{$fkGetter}(\$con)->toKeyValue('{$fk->getTable()->getFirstPrimaryKeyColumn()->getPhpName()}', 'Version')) {
 		\$version->set{$idsColumn->getPhpName()}(array_keys(\$relateds));
 		\$version->set{$versionsColumn->getPhpName()}(array_values(\$relateds));
 	}";
@@ -315,7 +315,9 @@ public function populateFromVersion(\$version, \$con = null, &\$loadedObjects = 
 			$foreignTable = $fk->getForeignTable();
 			$foreignVersionTable = $fk->getForeignTable()->getBehavior($this->behavior->getName())->getVersionTable();
 			$relatedClassname = $this->builder->getNewStubObjectBuilder($foreignTable)->getClassname();
-			$relatedVersionQueryClassname = $this->builder->getNewStubQueryBuilder($foreignVersionTable)->getClassname();
+			$relatedVersionQueryBuilder = $this->builder->getNewStubQueryBuilder($foreignVersionTable);
+			$this->builder->declareClassFromBuilder($relatedVersionQueryBuilder);
+			$relatedVersionQueryClassname = $relatedVersionQueryBuilder->getClassname();
 			$fkColumnName = $fk->getLocalColumnName();
 			$fkColumnPhpName = $fk->getLocalColumn()->getPhpName();
 			$fkVersionColumnPhpName = $versionTable->getColumn($fkColumnName . '_version')->getPhpName();
@@ -345,10 +347,14 @@ public function populateFromVersion(\$version, \$con = null, &\$loadedObjects = 
 			$foreignVersionTable = $foreignBehavior->getVersionTable();
 			$fkColumnIds = $this->behavior->getReferrerIdsColumn($fk);
 			$fkColumnVersions = $this->behavior->getReferrerVersionsColumn($fk);
-			$relatedVersionQueryClassname = $this->builder->getNewStubQueryBuilder($foreignVersionTable)->getClassname();
-			$relatedVersionPeerClassname = $this->builder->getNewStubPeerBuilder($foreignVersionTable)->getClassname();
+			$relatedVersionQueryBuilder = $this->builder->getNewStubQueryBuilder($foreignVersionTable);
+			$this->builder->declareClassFromBuilder($relatedVersionQueryBuilder);
+			$relatedVersionQueryClassname = $relatedVersionQueryBuilder->getClassname();
+			$relatedVersionPeerBuilder = $this->builder->getNewStubPeerBuilder($foreignVersionTable);
+			$this->builder->declareClassFromBuilder($relatedVersionPeerBuilder);
+			$relatedVersionPeerClassname = $relatedVersionPeerBuilder->getClassname();
 			$relatedClassname = $this->builder->getNewStubObjectBuilder($foreignTable)->getClassname();
-			$fkColumn = $fk->getForeignColumn();
+			$fkColumn = $foreignVersionTable->getFirstPrimaryKeyColumn();
 			$fkVersionColumn = $foreignVersionTable->getColumn($this->behavior->getParameter('version_column'));
 			$script .= "
 	if (\$fkValues = \$version->get{$fkColumnIds->getPhpName()}()) {
