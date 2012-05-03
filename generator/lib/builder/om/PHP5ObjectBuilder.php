@@ -198,12 +198,14 @@ class PHP5ObjectBuilder extends ObjectBuilder
  */
 abstract class ".$this->getClassname()." extends ".$parentClass." ";
 
-		$interface = ClassTools::getInterface($table);
-		if ($interface) {
-			$script .= " implements " . ClassTools::classname($interface);
-		}
-		if ($this->getTable()->getInterface()) {
-			$this->declareClassFromBuilder($this->getInterfaceBuilder());
+		if ($interface = $this->getTable()->getInterface()) {
+			$script .= "implements " . ClassTools::classname($interface);
+
+			if ($interface !== ClassTools::classname($interface)) {
+				$this->declareClass($interface);
+			} else {
+				$this->declareClassFromBuilder($this->getInterfaceBuilder());
+			}
 		}
 
 		$script .= "
@@ -3915,10 +3917,10 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
 
 	protected function addCrossFKSet(&$script, $refFK, $crossFK)
 	{
-		$relatedName = $this->getFKPhpNameAffix($crossFK, $plural = true);
+		$relatedNamePlural = $this->getFKPhpNameAffix($crossFK, $plural = true);
+		$relatedName = $this->getFKPhpNameAffix($crossFK, $plural = false);
 		$relatedObjectClassName = $this->getNewStubObjectBuilder($crossFK->getForeignTable())->getClassname();
 		$selfRelationName = $this->getFKPhpNameAffix($refFK, $plural = false);
-		$relatedQueryClassName = $this->getNewStubQueryBuilder($crossFK->getForeignTable())->getClassname();
 		$crossRefQueryClassName = $this->getRefFKPhpNameAffix($refFK, $plural = false);
 		$crossRefTableName = $crossFK->getTableName();
 		$collName = $this->getCrossFKVarName($crossFK);
@@ -3932,7 +3934,7 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
 		$crossRefObjectClassName = '$' . $lowerClassName;
 
 		// No lcfirst() in PHP < 5.3
-		$inputCollection = $relatedName;
+		$inputCollection = $relatedNamePlural;
 		$inputCollection[0] = strtolower($inputCollection[0]);
 
 		// No lcfirst() in PHP < 5.3
@@ -3952,22 +3954,36 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
 	 * @param      PropelCollection \${$inputCollection} A Propel collection.
 	 * @param      PropelPDO \$con Optional connection object
 	 */
-	public function set{$relatedName}(PropelCollection \${$inputCollection}, PropelPDO \$con = null)
+	public function set{$relatedNamePlural}(PropelCollection \${$inputCollection}, PropelPDO \$con = null)
 	{
 		{$crossRefObjectClassName}s = {$crossRefQueryClassName}Query::create()
-			->filterBy{$relatedObjectClassName}(\${$inputCollection})
+			->filterBy{$relatedName}(\${$inputCollection})
 			->filterBy{$selfRelationName}(\$this)
 			->find(\$con);
 
-		\$this->{$inputCollection}ScheduledForDeletion = \$this->get{$relCol}()->diff({$crossRefObjectClassName}s);
+		\$current{$relCol} = \$this->get{$relCol}();
+
+		\$this->{$inputCollection}ScheduledForDeletion = \$current{$relCol}->diff({$crossRefObjectClassName}s);
 		\$this->{$relColVarName} = {$crossRefObjectClassName}s;
 
 		foreach (\${$inputCollection} as \${$inputCollectionEntry}) {
+			// Skip objects that are already in the current collection.
+			\$isInCurrent = false;
+			foreach (\$current{$relCol} as {$crossRefObjectClassName}) {
+				if ({$crossRefObjectClassName}->get{$relatedName}() == \${$inputCollectionEntry}) {
+					\$isInCurrent = true;
+					break;
+				}
+			}
+			if (\$isInCurrent) {
+				continue;
+			}
+
 			// Fix issue with collection modified by reference
 			if (\${$inputCollectionEntry}->isNew()) {
-				\$this->doAdd{$relatedObjectClassName}(\${$inputCollectionEntry});
+				\$this->doAdd{$relatedName}(\${$inputCollectionEntry});
 			} else {
-				\$this->add{$relatedObjectClassName}(\${$inputCollectionEntry});
+				\$this->add{$relatedName}(\${$inputCollectionEntry});
 			}
 		}
 

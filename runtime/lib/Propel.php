@@ -30,7 +30,7 @@ class Propel
 	/**
 	 * The Propel version.
 	 */
-	const VERSION = '1.6.5-dev';
+	const VERSION = '1.6.6-dev';
 
 	/**
 	 * A constant for <code>default</code>.
@@ -673,6 +673,7 @@ class Propel
 		try {
 			$con = new $classname($dsn, $user, $password, $driver_options);
 			$con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$con->setAttribute(PropelPDO::PROPEL_ATTR_CONNECTION_NAME, $name);
 		} catch (PDOException $e) {
 			throw new PropelException("Unable to open PDO connection", $e);
 		}
